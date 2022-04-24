@@ -111,7 +111,9 @@ async def cancelacion(id_client: str,id_fondo: str):
     else:
         response="El cliente no esta suscrito al fondo seleccionado"
         
-    return response
+    return [response]
+
+
 @app.post(base_path+"/suscripcion")
 async def suscripcion(id_client: str,id_fondo: str):
 
@@ -148,9 +150,10 @@ async def suscripcion(id_client: str,id_fondo: str):
         insert_registro_historial(cliente,my_fondo,"SUSCRIPCION")
         response="Suscripcion exitosa"
     else:
-        response="El cliente ya esta suscrito al fondo o no se cuenta con dinero suficiente para la suscripcion"
+        nombre_fondo=my_fondo["nombre"]
+        response=f"El cliente ya esta suscrito al {nombre_fondo} o no cuenta con dinero suficiente para la suscripcion"
         
-    return response
+    return [response]
 
 
 def insert_registro_historial(cliente,my_fondo,tipo_transaccion):
