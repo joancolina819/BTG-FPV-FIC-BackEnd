@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 import os
 import logging
+import uuid
+from datetime import datetime
+
 
 logger=logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -109,6 +112,7 @@ async def suscripcion(id_client: str,id_fondo: str):
             }
         }
         )
+        insert_registro_historial(cliente,my_fondo,"SUSCRIPCION")
         response="Suscripcion exitosa"
     else:
         response="El cliente ya esta suscrito al fondo o no se cuenta con dinero suficiente para la suscripcion"
@@ -116,6 +120,37 @@ async def suscripcion(id_client: str,id_fondo: str):
     return response
 
 
+def insert_registro_historial(cliente,my_fondo,tipo_transaccion):
+    db=client_mongo["dbBTGFondos"]
+
+    historial=db["historialTransacciones"]
+    transaccion_to_insert={
+        "_id":str(uuid.uuid4()),
+        "nombre":cliente["nombre"],
+        "apellido":cliente["apellido"],
+        "edad":cliente["edad"],
+        "hora de transaccion":datetime.now(),
+        "fondo":my_fondo["nombre"],
+        'tipo de transaccion':tipo_transaccion
+    }
+    historial.insert_one(transaccion_to_insert)
+
+
+@app.get(base_path+"/historial")
+async def getUsuario():
+
+    db=client_mongo["dbBTGFondos"]
+
+    historial=db["historialTransacciones"]
+
+    historial_list=[]
+    contador =1
+    for documento in historial.find({}):
+        documento["id"]=contador
+        contador=contador+1
+        historial_list.append(documento)
+        
+    return historial_list
 #########################################################################
 ## ESTE SERVICIO ES DE PRUEBAS PARA PODER CREAR RAPIDAMENTE EL USUARIO ##
 #########################################################################
