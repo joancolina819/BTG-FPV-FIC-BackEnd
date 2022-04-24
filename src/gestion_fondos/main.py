@@ -50,17 +50,18 @@ async def getFondos(id_client: str):
 
     fondos=db["fondos"]
     my_fondos_list=[]
-
+    
     contador =1
     for fondo in cliente["fondos"]:
         my_fondo=fondos.find({
             "_id":fondo
             })[0]
         my_fondo["id"]=contador
-        contador+1
+        contador=contador+1
         my_fondos_list.append(my_fondo)
         
     return my_fondos_list
+
 
 @app.get(base_path+"/usuario")
 async def getUsuario():
@@ -75,11 +76,51 @@ async def getUsuario():
     })[0]
 
 
+@app.post(base_path+"/suscripcion")
+async def suscripcion(id_client: str,id_fondo: str):
+
+    ## CONEXION A LA BASE DE DATOS
+    db=client_mongo["dbBTGFondos"]
+
+    ## OBTENCION DE LA COLECCION DE CLIENTE
+    clientes=db["clientesFondos"]
+    cliente=clientes.find({
+        "_id":id_client
+    })[0]
+
+    ## OBTENCION DE LA COLECCION DE FONDOS
+    fondos=db["fondos"]
+    my_fondo=fondos.find({
+            "_id":id_fondo
+            })[0]
+    new_fondos=cliente["fondos"]
+
+    if not id_fondo in new_fondos and int(cliente["presupuesto"]) > int(my_fondo["monto_minimo_vinculacion"]):
+        new_valor_to_client= int(cliente["presupuesto"]) - int(my_fondo["monto_minimo_vinculacion"])
+        new_fondos.append(id_fondo)
+
+        clientes.update_one({
+            "_id":id_client
+        },
+        {
+            "$set":{
+                "fondos":new_fondos,
+                "presupuesto":new_valor_to_client
+            }
+        }
+        )
+        response="Suscripcion exitosa"
+    else:
+        response="El cliente ya esta suscrito al fondo o no se cuenta con dinero suficiente para la suscripcion"
+        
+    return response
+
+
 #########################################################################
 ## ESTE SERVICIO ES DE PRUEBAS PARA PODER CREAR RAPIDAMENTE EL USUARIO ##
 #########################################################################
 @app.post("/cliente")
-async def root():
+async def insertarCliente():
     db=client_mongo["dbBTGFondos"]
 
     clientes=db["clientesFondos"]
@@ -93,3 +134,21 @@ async def root():
     }
     clientes.insert_one(cliente_to_insert)
     return "Cliente insertado correctamente"
+
+
+@app.post("/corregircliente")
+async def corregirCliente():
+    db=client_mongo["dbBTGFondos"]
+
+    clientes=db["clientesFondos"]
+    clientes.update_one({
+        "_id":"1"
+    },
+    {
+        "$set":{
+            "fondos":[],
+            "presupuesto":500000
+        }
+    },
+    )
+    return "Cliente corregido"
