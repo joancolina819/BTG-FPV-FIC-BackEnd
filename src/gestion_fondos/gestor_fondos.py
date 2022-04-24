@@ -52,15 +52,13 @@ async def getFondos(id_client: str):
     })[0]
 
     fondos=db["fondos"]
-    my_fondos_list=[]
-    
-    contador =1
+    my_fondos_list=[]   
+
     for fondo in cliente["fondos"]:
         my_fondo=fondos.find({
             "_id":fondo
             })[0]
-        my_fondo["id"]=contador
-        contador=contador+1
+        my_fondo["id"]=fondo
         my_fondos_list.append(my_fondo)
         
     return my_fondos_list
@@ -78,7 +76,42 @@ async def getUsuario():
         "apellido": "Colina Echeverry"
     })[0]
 
+@app.post(base_path+"/cancelacion")
+async def cancelacion(id_client: str,id_fondo: str):
+    ## CONEXION A LA BASE DE DATOS
+    db=client_mongo["dbBTGFondos"]
 
+    clientes=db["clientesFondos"]
+    cliente=clientes.find({
+        "_id":id_client
+    })[0]
+
+    fondos=db["fondos"]
+    my_fondo=fondos.find({
+            "_id":id_fondo
+            })[0]
+    fondos_client=cliente["fondos"]
+
+    if id_fondo in fondos_client:
+        new_valor_to_client= int(cliente["presupuesto"]) + int(my_fondo["monto_minimo_vinculacion"])
+        fondos_client.remove(id_fondo)
+
+        clientes.update_one({
+            "_id":id_client
+        },
+        {
+            "$set":{
+                "fondos":fondos_client,
+                "presupuesto":new_valor_to_client
+            }
+        }
+        )
+        insert_registro_historial(cliente,my_fondo,"CANCELACION")
+        response="Cancelacion exitosa"
+    else:
+        response="El cliente no esta suscrito al fondo seleccionado"
+        
+    return response
 @app.post(base_path+"/suscripcion")
 async def suscripcion(id_client: str,id_fondo: str):
 
@@ -96,18 +129,18 @@ async def suscripcion(id_client: str,id_fondo: str):
     my_fondo=fondos.find({
             "_id":id_fondo
             })[0]
-    new_fondos=cliente["fondos"]
+    fondos_client=cliente["fondos"]
 
-    if not id_fondo in new_fondos and int(cliente["presupuesto"]) > int(my_fondo["monto_minimo_vinculacion"]):
+    if not id_fondo in fondos_client and int(cliente["presupuesto"]) > int(my_fondo["monto_minimo_vinculacion"]):
         new_valor_to_client= int(cliente["presupuesto"]) - int(my_fondo["monto_minimo_vinculacion"])
-        new_fondos.append(id_fondo)
+        fondos_client.append(id_fondo)
 
         clientes.update_one({
             "_id":id_client
         },
         {
             "$set":{
-                "fondos":new_fondos,
+                "fondos":fondos_client,
                 "presupuesto":new_valor_to_client
             }
         }
