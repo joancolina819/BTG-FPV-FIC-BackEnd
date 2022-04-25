@@ -7,12 +7,23 @@ db=client_mongo["dbBTGFondos"]
 #########################################################################
 ## ESTE SERVICIO ES DE PRUEBAS PARA PODER CREAR RAPIDAMENTE EL USUARIO ##
 #########################################################################
+def eliminarCliente():
+
+    myquery = { "_id": "1" }
+
+    clientes=db["clientesFondos"]
+
+    clientes.delete_one(myquery)
+    return "Cliente eliminado correctamente"
+
 def insertarCliente():
 
     clientes=db["clientesFondos"]
     cliente_to_insert={
         "_id":"1",
         "nombre":"Joan David",
+        "identifcacion":"1144587895",
+        "correoElectronico":"JoandaviPrueba@outlook.com",
         "apellido":"Colina Echeverry",
         "edad":24,
         "fondos":[],

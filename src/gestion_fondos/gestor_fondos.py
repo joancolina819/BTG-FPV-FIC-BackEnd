@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 import os
 from src.utils.util import build_error_response
-from src.data_preparation.data_preparation import insertarCliente, insertarFondos, corregirCliente
+from src.data_preparation.data_preparation import insertarCliente, insertarFondos, corregirCliente, eliminarCliente
 import logging
 import uuid
 from datetime import datetime
@@ -243,6 +243,7 @@ async def get_record():
 async def data_preparation():
     logger.info("## start data_preparation")
     try:
+        eliminarCliente()
         insertarCliente() 
         insertarFondos()
         logger.info("## exit data_preparation")
