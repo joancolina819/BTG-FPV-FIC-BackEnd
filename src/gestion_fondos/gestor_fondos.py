@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 import os
 from src.utils.util import build_error_response
+from src.data_preparation.data_preparation import insertarCliente, insertarFondos, corregirCliente
 import logging
 import uuid
 from datetime import datetime
@@ -31,18 +32,9 @@ app.add_middleware(
 async def get_fondos():
     logger.info("## start get_fondos")
     try:
-        ##db=client_mongo["dbBTGFondos"]
 
         fondos=db["fondos"]
-
-        fondos_list=[]
-        counter =1
-        for document in fondos.find({}):
-            document["id"]=counter
-            counter=counter+1
-            fondos_list.append(document)
-            logger.info("fondo agregado")
-            
+        fondos_list =list(fondos.find({}))
         logger.info(f"todos los fondos {fondos_list}")
 
         logger.info("## exit get_fondos")
@@ -56,7 +48,6 @@ async def get_fondos():
 async def get_my_fondos(id_client: str):
     logger.info("## start get_my_fondos")
     try:
-        ##db=client_mongo["dbBTGFondos"]
 
         clients=db["clientesFondos"]
         client=clients.find({
@@ -71,7 +62,6 @@ async def get_my_fondos(id_client: str):
             my_fondo=fondos.find({
                 "_id":fondo
                 })[0]
-            my_fondo["id"]=fondo
             my_fondos_list.append(my_fondo)
             
         logger.info(f"todos los fondos del cliente {my_fondos_list}")
@@ -85,27 +75,26 @@ async def get_my_fondos(id_client: str):
 
 
 @app.get(base_path+"/usuario")
-async def get_user():
+async def get_user(client_name: str,client_last_name: str):
     logger.info("## start get_user")
     try:
-        ##db=client_mongo["dbBTGFondos"]
 
         clients=db["clientesFondos"]
 
         logger.info("## exit get_user")
         return clients.find({
-            "nombre":"Joan David",
-            "apellido": "Colina Echeverry"
+            "nombre":client_name,
+            "apellido": client_last_name
         })[0]
     except BaseException as e:
         logger.error("## exit get_user")
         return build_error_response(e)
 
+
 @app.post(base_path+"/cancelacion")
 async def cancellation(id_client: str,id_fondo: str):
     logger.info("## start cancellation")
     try:
-        ##db=client_mongo["dbBTGFondos"]
 
         clients=db["clientesFondos"]
         client=clients.find({
@@ -155,8 +144,6 @@ async def cancellation(id_client: str,id_fondo: str):
 async def subscription(id_client: str,id_fondo: str):
     logger.info("## start subscription")
     try:
-        ## CONEXION A LA BASE DE DATOS
-        ##db=client_mongo["dbBTGFondos"]
 
         ## OBTENCION DE LA COLECCION DE CLIENTE
         clients=db["clientesFondos"]
@@ -206,7 +193,6 @@ async def subscription(id_client: str,id_fondo: str):
 def insert_record_row(client,my_fondo,transaction_type):
     logger.info("## start insert_record_row")
     try:
-        ##db=client_mongo["dbBTGFondos"]
 
         records=db["historialTransacciones"]
         
@@ -235,8 +221,7 @@ def insert_record_row(client,my_fondo,transaction_type):
 async def get_record():
     logger.info("## start get_record")
     try:
-        ##db=client_mongo["dbBTGFondos"]
-
+    
         record=db["historialTransacciones"]
 
         record_list=[]
@@ -254,42 +239,15 @@ async def get_record():
         return build_error_response(e)
 
 
-
-
-
-#########################################################################
-## ESTE SERVICIO ES DE PRUEBAS PARA PODER CREAR RAPIDAMENTE EL USUARIO ##
-#########################################################################
-@app.post("/cliente")
-async def insertarCliente():
-    ##db=client_mongo["dbBTGFondos"]
-
-    clientes=db["clientesFondos"]
-    cliente_to_insert={
-        "_id":"1",
-        "nombre":"Joan David",
-        "apellido":"Colina Echeverry",
-        "edad":24,
-        "fondos":[],
-        "presupuesto":500000
-    }
-    clientes.insert_one(cliente_to_insert)
-    return "Cliente insertado correctamente"
-
-
-@app.post("/corregircliente")
-async def corregirCliente():
-    ##db=client_mongo["dbBTGFondos"]
-
-    clientes=db["clientesFondos"]
-    clientes.update_one({
-        "_id":"1"
-    },
-    {
-        "$set":{
-            "fondos":[],
-            "presupuesto":500000
-        }
-    },
-    )
-    return "Cliente corregido"
+@app.post(base_path+"/datapreparation")
+async def data_preparation():
+    logger.info("## start data_preparation")
+    try:
+        insertarCliente() 
+        insertarFondos()
+        logger.info("## exit data_preparation")
+        return "Datos creados correctamente"
+    except BaseException as e:
+        logger.error("## exit data_preparation")
+        corregirCliente()
+        return build_error_response(e)

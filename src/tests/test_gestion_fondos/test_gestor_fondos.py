@@ -61,19 +61,11 @@ def test_get_my_fondos(mock_find):
             'fondos' : '1'
         }
     ]
-
-    expected=[
-        {
-            'test' : 'test', 
-            'fondos' : '1',
-            'id':"1"
-        }
-    ]
     mock_find.side_effect =[expected_client,expected_fondo]
 
     response = test_client.get("/2FVC/myfondos?id_client=1")
     assert response.status_code == 200
-    assert response.json() == expected
+    assert response.json() == expected_fondo
 
 
 @mock.patch("pymongo.collection.Collection.find")
@@ -88,7 +80,7 @@ def test_get_user(mock_find):
     ]
     mock_find.return_value =expected
 
-    response = test_client.get("/2FVC/fondos")
+    response = test_client.get("/2FVC/fondos?client_name=test&client_last_name=test")
     assert response.status_code == 200
     assert response.json() == expected
 
