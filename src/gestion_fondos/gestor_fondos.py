@@ -160,7 +160,7 @@ async def subscription(id_client: str,id_fondo: str):
         fondos_client=client["fondos"]
         logger.info(f"fondo a suscribir {my_fondo}")
 
-        if not id_fondo in fondos_client and int(client["presupuesto"]) > int(my_fondo["monto_minimo_vinculacion"]):
+        if not id_fondo in fondos_client and int(client["presupuesto"]) >= int(my_fondo["monto_minimo_vinculacion"]):
             new_valor_to_client= int(client["presupuesto"]) - int(my_fondo["monto_minimo_vinculacion"])
             logger.info(f"nuevo presupuesto del cliente {new_valor_to_client}")
             fondos_client.append(id_fondo)
