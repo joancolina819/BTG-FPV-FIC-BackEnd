@@ -120,10 +120,21 @@ async def cancellation(id_client: str,id_fondo: str, invesment):
             {
                 "$set":{
                     "fondos":fondos_client,
-                    "presupuesto":new_valor_to_client
+                    "presupuesto":new_valor_to_client,
                 }
             }
             )
+
+            fondos.update_one({
+                "_id":id_fondo
+            },
+            {
+                "$set":{
+                    "inversion_cliente":0,
+                }
+            }
+            )
+
             logger.info("cancelacion exitosa")
             insert_record_row(client,my_fondo,"CANCELACION",invesment)
 
