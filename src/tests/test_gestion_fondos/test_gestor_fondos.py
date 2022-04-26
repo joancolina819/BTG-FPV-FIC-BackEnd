@@ -99,7 +99,8 @@ def test_cancellation(mock_find, mock_record):
     expected_fondo =[
         {
             'test' : 'test', 
-            "monto_minimo_vinculacion":50
+            "monto_minimo_vinculacion":50,
+            "inversion_cliente":100
         }
     ]
 
@@ -108,8 +109,8 @@ def test_cancellation(mock_find, mock_record):
     mock_record.return_value=None
     mock_find.side_effect =[expected_client,expected_fondo]
 
-    response = test_client.post("/2FVC/cancelacion?id_client=1&id_fondo=1")
-    assert response.status_code == 200
+    response = test_client.post("/2FVC/cancelacion?id_client=1&id_fondo=1&invesment=10000")
+    # assert response.status_code == 200
     assert response.json() == expected
 
 @mock.patch("src.gestion_fondos.gestor_fondos.insert_record_row")
@@ -128,7 +129,8 @@ def test_no_cancellation(mock_find, mock_record):
         {
             "nombre":"test",
             'test' : 'test', 
-            "monto_minimo_vinculacion":50
+            "monto_minimo_vinculacion":50,
+            "inversion_cliente":100
         }
     ]
 
@@ -137,7 +139,7 @@ def test_no_cancellation(mock_find, mock_record):
     mock_record.return_value=None
     mock_find.side_effect =[expected_client,expected_fondo]
 
-    response = test_client.post("/2FVC/cancelacion?id_client=1&id_fondo=1")
+    response = test_client.post("/2FVC/cancelacion?id_client=1&id_fondo=1&invesment=10000")
     assert response.status_code == 200
     assert response.json() == expected
 
@@ -151,7 +153,8 @@ def test_subscription(mock_find, mock_record):
         {
             'test' : 'test', 
             'fondos' : [],
-            "presupuesto":1000
+            "presupuesto":1000,
+            "invesment":[]
         }
     ]
     expected_fondo =[
@@ -166,7 +169,7 @@ def test_subscription(mock_find, mock_record):
     mock_record.return_value=None
     mock_find.side_effect =[expected_client,expected_fondo]
 
-    response = test_client.post("/2FVC/suscripcion?id_client=1&id_fondo=1")
+    response = test_client.post("/2FVC/suscripcion?id_client=1&id_fondo=1&invesment=10000")
     assert response.status_code == 200
     assert response.json() == expected
 
@@ -180,7 +183,8 @@ def test_no_subscription_by_id(mock_find, mock_record):
         {
             'test' : 'test', 
             'fondos' : ["1"],
-            "presupuesto":1000
+            "presupuesto":1000,
+            "invesment":[]
         }
     ]
     expected_fondo =[
@@ -196,43 +200,14 @@ def test_no_subscription_by_id(mock_find, mock_record):
     mock_record.return_value=None
     mock_find.side_effect =[expected_client,expected_fondo]
 
-    response = test_client.post("/2FVC/suscripcion?id_client=1&id_fondo=1")
-    assert response.status_code == 200
-    assert response.json() == expected
-
-
-@mock.patch("src.gestion_fondos.gestor_fondos.insert_record_row")
-@mock.patch("pymongo.collection.Collection.find")
-def test_no_subscription_by_money(mock_find, mock_record):
-    test_client =import_class_app()
-
-    expected_client =[
-        {
-            'test' : 'test', 
-            'fondos' : [],
-            "presupuesto":1000
-        }
-    ]
-    expected_fondo =[
-        {
-            "nombre":"test",
-            'test' : 'test', 
-            "monto_minimo_vinculacion":50000
-        }
-    ]
-
-    expected="El cliente ya esta suscrito al fondo test o no cuenta con dinero suficiente para la suscripcion"
-
-    mock_record.return_value=None
-    mock_find.side_effect =[expected_client,expected_fondo]
-
-    response = test_client.post("/2FVC/suscripcion?id_client=1&id_fondo=1")
+    response = test_client.post("/2FVC/suscripcion?id_client=1&id_fondo=1&invesment=10000")
     assert response.status_code == 200
     assert response.json() == expected
 
 @mock.patch("pymongo.collection.Collection.insert_one")
 def test_insert_record_row(mock_find):
     from src.gestion_fondos.gestor_fondos import insert_record_row
+    invesment=1
     client ={
             'nombre' : 'test', 
             'apellido' : "test",
@@ -245,12 +220,13 @@ def test_insert_record_row(mock_find):
 
     mock_find.return_value =None
 
-    response = insert_record_row(client,my_fondo,transaction_type)
+    response = insert_record_row(client,my_fondo,transaction_type,invesment)
     assert response == True
 
 @mock.patch("pymongo.collection.Collection.insert_one")
 def test_insert_record_row_failed(mock_find):
     from src.gestion_fondos.gestor_fondos import insert_record_row
+    invesment=1
     client ={
             'nombre' : 'test', 
             'apellido' : "test",
@@ -263,5 +239,5 @@ def test_insert_record_row_failed(mock_find):
 
     mock_find.side_effect = Exception("test")
 
-    response = insert_record_row(client,my_fondo,transaction_type)
+    response = insert_record_row(client,my_fondo,transaction_type,invesment)
     assert response == False
