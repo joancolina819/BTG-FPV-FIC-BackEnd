@@ -1,0 +1,5 @@
+REPOSITORIO DEL FRONT:
+https://github.com/joancolina819/BTG-FPV-FIC-FrontEnd
+
+REPOSITORIO DEL BACK
+https://github.com/joancolina819/BTG-FPV-FIC-BackEnd
