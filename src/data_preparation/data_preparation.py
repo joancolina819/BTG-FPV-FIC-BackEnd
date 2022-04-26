@@ -16,6 +16,7 @@ def eliminarCliente():
     clientes.delete_one(myquery)
     return "Cliente eliminado correctamente"
 
+
 def insertarCliente():
 
     clientes=db["clientesFondos"]
@@ -27,6 +28,7 @@ def insertarCliente():
         "apellido":"Colina Echeverry",
         "edad":24,
         "fondos":[],
+        "invesment":[],
         "presupuesto":500000
     }
     clientes.insert_one(cliente_to_insert)
@@ -42,36 +44,41 @@ def insertarFondos():
         {
             "_id": "1",
             "nombre": "FPV_BTG_PACTUAL_RECAUDADORA",
-            "monto_minimo_vinculacion": "75000",
+            "monto_minimo_vinculacion": 75000,
             "categoria": "FPV",
+            "inversion_cliente":0,
             "id": 1
         },
         {
             "_id": "2",
             "nombre": "FPV_BTG_PACTUAL_ECOPETROL",
-            "monto_minimo_vinculacion": "125000",
+            "monto_minimo_vinculacion": 125000,
             "categoria": "FPV",
+            "inversion_cliente":0,
             "id": 2
         },
         {
             "_id": "3",
             "nombre": "DEUDAPRIVADA",
-            "monto_minimo_vinculacion": "50000",
+            "monto_minimo_vinculacion": 50000,
             "categoria": "FIC",
+            "inversion_cliente":0,
             "id": 3
         },
         {
             "_id": "4",
             "nombre": "FDO-ACCIONES",
-            "monto_minimo_vinculacion": "250000",
+            "monto_minimo_vinculacion": 250000,
             "categoria": "FIC",
+            "inversion_cliente":0,
             "id": 4
         },
         {
             "_id": "5",
             "nombre": "FPV_BTG_PACTUAL_DINAMICA",
-            "monto_minimo_vinculacion": "100000",
+            "monto_minimo_vinculacion": 100000,
             "categoria": "FPV",
+            "inversion_cliente":0,
             "id": 5
         }
     ]

@@ -92,7 +92,7 @@ async def get_user(client_name: str,client_last_name: str):
 
 
 @app.post(base_path+"/cancelacion")
-async def cancellation(id_client: str,id_fondo: str):
+async def cancellation(id_client: str,id_fondo: str, invesment):
     logger.info("## start cancellation")
     try:
 
@@ -110,7 +110,7 @@ async def cancellation(id_client: str,id_fondo: str):
         logger.info(f"fondo a cancelar {my_fondo}")
 
         if id_fondo in fondos_client:
-            new_valor_to_client= int(client["presupuesto"]) + int(my_fondo["monto_minimo_vinculacion"])
+            new_valor_to_client= client["presupuesto"] + my_fondo["inversion_cliente"]
             logger.info(f"nuevo presupuesto del cliente {new_valor_to_client}")
             fondos_client.remove(id_fondo)
 
@@ -125,7 +125,7 @@ async def cancellation(id_client: str,id_fondo: str):
             }
             )
             logger.info("cancelacion exitosa")
-            insert_record_row(client,my_fondo,"CANCELACION")
+            insert_record_row(client,my_fondo,"CANCELACION",invesment)
 
             response="Cancelacion exitosa"
         else:
@@ -141,7 +141,7 @@ async def cancellation(id_client: str,id_fondo: str):
 
 
 @app.post(base_path+"/suscripcion")
-async def subscription(id_client: str,id_fondo: str):
+async def subscription(id_client: str,id_fondo: str, invesment: int):
     logger.info("## start subscription")
     try:
 
@@ -159,9 +159,13 @@ async def subscription(id_client: str,id_fondo: str):
                 })[0]
         fondos_client=client["fondos"]
         logger.info(f"fondo a suscribir {my_fondo}")
-
-        if not id_fondo in fondos_client and int(client["presupuesto"]) >= int(my_fondo["monto_minimo_vinculacion"]):
-            new_valor_to_client= int(client["presupuesto"]) - int(my_fondo["monto_minimo_vinculacion"])
+        invesmet_client_actu=client["invesment"]
+        fondo_invesment={
+            id_fondo:invesment
+        }
+        invesmet_client_actu.append(fondo_invesment)
+        if not id_fondo in fondos_client:
+            new_valor_to_client= client["presupuesto"] -invesment
             logger.info(f"nuevo presupuesto del cliente {new_valor_to_client}")
             fondos_client.append(id_fondo)
 
@@ -171,12 +175,23 @@ async def subscription(id_client: str,id_fondo: str):
             {
                 "$set":{
                     "fondos":fondos_client,
-                    "presupuesto":new_valor_to_client
+                    "presupuesto":new_valor_to_client,
+                    "invesment":invesmet_client_actu
+                }
+            }
+            )
+
+            fondos.update_one({
+                "_id":id_fondo
+            },
+            {
+                "$set":{
+                    "inversion_cliente":invesment,
                 }
             }
             )
             logger.info("suscripcion exitosa")
-            insert_record_row(client,my_fondo,"SUSCRIPCION")
+            insert_record_row(client,my_fondo,"SUSCRIPCION",invesment)
             response="Suscripcion exitosa"
         else:
             fondo_name=my_fondo["nombre"]
@@ -190,7 +205,7 @@ async def subscription(id_client: str,id_fondo: str):
         return build_error_response(e)
 
 
-def insert_record_row(client,my_fondo,transaction_type):
+def insert_record_row(client,my_fondo,transaction_type,invesment):
     logger.info("## start insert_record_row")
     try:
 
@@ -203,6 +218,7 @@ def insert_record_row(client,my_fondo,transaction_type):
             "edad":client["edad"],
             "hora de transaccion":datetime.now(),
             "fondo":my_fondo["nombre"],
+            "inversion":invesment,
             'tipo de transaccion':transaction_type
         }
         logger.info(f"trasaccion a insertar {transaction_to_insert}")

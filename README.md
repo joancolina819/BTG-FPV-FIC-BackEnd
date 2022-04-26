@@ -11,6 +11,6 @@ Pasos para la ejecucion del codigo sin utilizar Docker (Se da por supuesto que y
 
 2. Para ejecutar el API REST:
 
-python -m uvicorn main:app --reload
+python -m uvicorn src.gestion_fondos.gestor_fondos:app --reload
 
 3. para utilizar lo servicios Ejecute la interfaz grafica o utilice otra aplicacion com Postman 
